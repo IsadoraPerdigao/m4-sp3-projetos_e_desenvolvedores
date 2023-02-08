@@ -13,15 +13,22 @@ interface IDeveloperInfos {
     preferredOS: string
 }
 
+interface IDeveloperComplete extends IDeveloper {
+    developerSince: Date
+    preferredOS: string
+}
+
 type DeveloperResult = QueryResult<IDeveloper>
 type DeveloperRequest = Omit<IDeveloper, "id" | "developerInfoId">
 type DeveloperInfoRequest = Omit<IDeveloperInfos, "id">
 type DeveloperInfosResult = QueryResult<IDeveloperInfos>
+type DeveloperCompleteResult = QueryResult<IDeveloperComplete>
 
 export {
     DeveloperRequest,
     IDeveloper,
     DeveloperResult,
     DeveloperInfoRequest,
-    DeveloperInfosResult
+    DeveloperInfosResult,
+    DeveloperCompleteResult
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import format from "pg-format";
-import { DeveloperInfoRequest, DeveloperInfosResult, DeveloperRequest, DeveloperResult } from "../interfaces/devInterfaces";
+import { DeveloperCompleteResult, DeveloperInfoRequest, DeveloperInfosResult, DeveloperRequest, DeveloperResult } from "../interfaces/devInterfaces";
 import { client } from "../database"
 import { QueryConfig } from "pg";
 
@@ -92,14 +92,40 @@ const queryConfig: QueryConfig = {
     text: query,
     values: [developerId]
 }
-const queryResult = await client.query(queryConfig)
+const queryResult: DeveloperCompleteResult = await client.query(queryConfig)
 
 return response.status(200).json(queryResult.rows[0])
+}
+
+const updateDeveloper = async (request: Request, response: Response): Promise<Response> => {
+    const developerId = request.params.id
+    const updateData = Object.values(request.body)
+    const updateKeys = Object.keys(request.body)
+
+    const query: string = format(
+        `
+        UPDATE  
+            developers
+        SET(%I) = ROW(%L)
+        WHERE id = $1
+        RETURNING *;
+    `,
+    updateKeys,
+    updateData)
+
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [developerId]
+    }
+    const queryResult : DeveloperResult = await client.query(queryConfig)
+
+    return response.status(200).json(queryResult.rows[0])
 }
 
 export {
     createNewDeveloper,
     createDeveloperInfo,
     listAllDevelopers,
-    getSpecificDeveloper
+    getSpecificDeveloper,
+    updateDeveloper
 }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import { QueryConfig } from "pg"
 import { client } from "../database"
+import { DeveloperResult } from "../interfaces/devInterfaces"
 
 const checkIfEmailExists = async (request: Request, response: Response, next: NextFunction) => {
     const requestEmail = request.body.email
@@ -26,7 +27,7 @@ const checkIfEmailExists = async (request: Request, response: Response, next: Ne
     return next()
 }
 
-const checkRequiredKeysCreateDeveloper = (request: Request, response: Response, next: NextFunction): Response | void => {
+const checkRequiredKeysDeveloper = (request: Request, response: Response, next: NextFunction): Response | void => {
     const requestKeys = Object.keys(request.body)
     
     if(!requestKeys.includes("name")) {
@@ -44,12 +45,26 @@ const checkRequiredKeysCreateDeveloper = (request: Request, response: Response, 
     return next()
 }
 
-const removeExtraKeysCreateDeveloper = (request: Request, response: Response, next: NextFunction) : void => {
-
+const removeExtraKeysDeveloper = async (request: Request, response: Response, next: NextFunction) => {
+    const developerInfoId = request.params.id
+    const query = `
+        SELECT 
+            d."developerInfoId" 
+        FROM 
+            developers d
+        WHERE 
+            id = $1;
+    `
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [developerInfoId]
+    }
+    const queryResult: DeveloperResult = await client.query(queryConfig)  
+    
     request.body = {
         name: request.body.name,
         email: request.body.email,
-        developerInfoId: null
+        developerInfoId: request.method === "POST" ? null : queryResult.rows[0].developerInfoId
     }
 
     return next()
@@ -107,11 +122,25 @@ const removeExtraKeysDeveloperInfos = (request: Request, response: Response, nex
     return next()
 }
 
+const checkPosibleKeysUpdate = (request: Request, response: Response, next: NextFunction) => {
+    const requestKeys = Object.keys(request.body)
+
+    if(!requestKeys.includes("name") && !requestKeys.includes("email")) {
+        return response.status(400).json({
+            "message": "At least one of those keys must be send.",
+            "keys": [ "name", "email" ]
+        })
+    }
+
+    return next()
+}
+
 export { 
-    checkRequiredKeysCreateDeveloper,
-    removeExtraKeysCreateDeveloper,
+    checkRequiredKeysDeveloper,
+    removeExtraKeysDeveloper,
     checkIfEmailExists,
     checkIfDeveloperExists,
     checkRequiredKeysDeveloperInfos,
-    removeExtraKeysDeveloperInfos
+    removeExtraKeysDeveloperInfos,
+    checkPosibleKeysUpdate
 }

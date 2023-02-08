@@ -72,8 +72,34 @@ const listAllDevelopers = async (request: Request, response: Response): Promise<
     return response.status(200).json(queryResult.rows)
 }
 
+const getSpecificDeveloper = async (request: Request, response: Response): Promise<Response> => {
+    const developerId = request.params.id
+    const query = `
+        SELECT 
+            d.*,
+            di."developerSince",
+            di."preferredOS" 
+        FROM
+            developers d
+        JOIN
+            developer_infos di 
+        ON
+            d."developerInfoId" = di.id
+        WHERE 
+            d.id = $1;
+`
+const queryConfig: QueryConfig = {
+    text: query,
+    values: [developerId]
+}
+const queryResult = await client.query(queryConfig)
+
+return response.status(200).json(queryResult.rows[0])
+}
+
 export {
     createNewDeveloper,
     createDeveloperInfo,
-    listAllDevelopers
+    listAllDevelopers,
+    getSpecificDeveloper
 }

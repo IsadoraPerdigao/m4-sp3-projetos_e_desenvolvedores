@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express"
 import { QueryConfig } from "pg"
+import { string } from "pg-format"
 import { client } from "../database"
-import { DeveloperResult } from "../interfaces/devInterfaces"
+import { DeveloperInfoPatchBody, DeveloperResult } from "../interfaces/devInterfaces"
 
 const checkIfEmailExists = async (request: Request, response: Response, next: NextFunction) => {
     const requestEmail = request.body.email
@@ -122,13 +123,42 @@ const removeExtraKeysDeveloperInfos = (request: Request, response: Response, nex
     return next()
 }
 
-const checkPosibleKeysUpdate = (request: Request, response: Response, next: NextFunction) => {
+const removeExtraKeysDeveloperInfosUpdate = (request: Request, response: Response, next: NextFunction) => {
+    let newBody : DeveloperInfoPatchBody = {}
+
+    if (request.body.developerSince != undefined) {
+        newBody.developerSince = request.body.developerSince
+    }
+
+    if (request.body.preferredOS != undefined) {
+        newBody.preferredOS = request.body.preferredOS.toUpperCase()
+    }
+
+    request.body = newBody
+
+    next()
+}
+
+const checkPosibleKeysUpdateDeveloper = (request: Request, response: Response, next: NextFunction) => {
     const requestKeys = Object.keys(request.body)
 
     if(!requestKeys.includes("name") && !requestKeys.includes("email")) {
         return response.status(400).json({
             "message": "At least one of those keys must be send.",
             "keys": [ "name", "email" ]
+        })
+    }
+
+    return next()
+}
+
+const checkPosibleKeysUpdateDeveloperInfo = (request: Request, response: Response, next: NextFunction) => {
+    const requestKeys = Object.keys(request.body)
+
+    if(!requestKeys.includes("developerSince") && !requestKeys.includes("preferredOS")) {
+        return response.status(400).json({
+            "message": "At least one of those keys must be send.",
+            "keys": [ "developerSince", "preferredOS" ]
         })
     }
 
@@ -142,5 +172,7 @@ export {
     checkIfDeveloperExists,
     checkRequiredKeysDeveloperInfos,
     removeExtraKeysDeveloperInfos,
-    checkPosibleKeysUpdate
+    checkPosibleKeysUpdateDeveloper,
+    removeExtraKeysDeveloperInfosUpdate,
+    checkPosibleKeysUpdateDeveloperInfo
 }

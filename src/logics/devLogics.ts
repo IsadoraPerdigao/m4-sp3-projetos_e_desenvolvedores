@@ -18,7 +18,7 @@ const createNewDeveloper = async (request: Request, response: Response) : Promis
     )
     const queryResult: DeveloperResult = await client.query(query)
 
-    return response.status(201).json(queryResult.rows)
+    return response.status(201).json(queryResult.rows[0])
 }
 
 const createDeveloperInfo =async (request: Request, response: Response): Promise<Response> => {

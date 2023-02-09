@@ -23,6 +23,10 @@ type DeveloperRequest = Omit<IDeveloper, "id" | "developerInfoId">
 type DeveloperInfoRequest = Omit<IDeveloperInfos, "id">
 type DeveloperInfosResult = QueryResult<IDeveloperInfos>
 type DeveloperCompleteResult = QueryResult<IDeveloperComplete>
+type DeveloperInfoPatchBody = {
+    developerSince?: string
+    preferredOS?: string
+}
 
 export {
     DeveloperRequest,
@@ -30,5 +34,6 @@ export {
     DeveloperResult,
     DeveloperInfoRequest,
     DeveloperInfosResult,
-    DeveloperCompleteResult
+    DeveloperCompleteResult,
+    DeveloperInfoPatchBody
 }

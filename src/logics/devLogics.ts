@@ -122,10 +122,52 @@ const updateDeveloper = async (request: Request, response: Response): Promise<Re
     return response.status(200).json(queryResult.rows[0])
 }
 
+const updateDeveloperInfo = async (request: Request, response: Response): Promise<Response> => {
+    const developerId = request.params.id
+    const updateKeys = Object.keys(request.body)
+    const updateData = Object.values(request.body)
+
+    const getDeveloperInfoIdQuery = `
+        SELECT 
+            d."developerInfoId" 
+        FROM 
+            developers d 
+        WHERE 
+            id = $1;
+    ` 
+    const getDeveloperInfoIdQueryConfig: QueryConfig = {
+        text: getDeveloperInfoIdQuery,
+        values: [developerId]
+    }
+
+    const getDeveloperInfoIdQueryResult = await client.query(getDeveloperInfoIdQueryConfig)
+    const developerInfoId = getDeveloperInfoIdQueryResult.rows[0].developerInfoId
+    
+    const updateQuery: string = format(
+        `
+        UPDATE  
+            developer_infos
+        SET(%I) = ROW(%L)
+        WHERE id = $1
+        RETURNING *;
+    `,
+    updateKeys,
+    updateData)
+
+    const queryConfig: QueryConfig = {
+        text: updateQuery,
+        values: [developerInfoId]
+    }
+    const queryResult : DeveloperInfosResult = await client.query(queryConfig)
+
+    return response.status(200).json(queryResult.rows[0])
+}
+
 export {
     createNewDeveloper,
     createDeveloperInfo,
     listAllDevelopers,
     getSpecificDeveloper,
-    updateDeveloper
+    updateDeveloper,
+    updateDeveloperInfo
 }

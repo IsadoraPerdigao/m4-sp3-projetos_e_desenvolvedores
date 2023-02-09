@@ -62,7 +62,7 @@ const listAllDevelopers = async (request: Request, response: Response): Promise<
             di."preferredOS" 
         FROM
             developers d
-        JOIN
+        LEFT JOIN
             developer_infos di 
         ON
             d."developerInfoId" = di.id;
@@ -81,7 +81,7 @@ const getSpecificDeveloper = async (request: Request, response: Response): Promi
             di."preferredOS" 
         FROM
             developers d
-        JOIN
+        LEFT JOIN
             developer_infos di 
         ON
             d."developerInfoId" = di.id
@@ -163,11 +163,60 @@ const updateDeveloperInfo = async (request: Request, response: Response): Promis
     return response.status(200).json(queryResult.rows[0])
 }
 
+const deleteDeveloper = async (request: Request, response: Response): Promise<Response> => {
+    const developerId = request.params.id
+    const selectDeveloperInfoQuery = `
+        SELECT 
+            "developerInfoId"
+        FROM 
+            developers d
+        WHERE 
+            id = $1;
+    `
+    const selectDeveloperInfoQueryConfig: QueryConfig = {
+        text: selectDeveloperInfoQuery,
+        values: [developerId]
+    }
+    const selectDeveloperInfoQueryResult = await client.query(selectDeveloperInfoQueryConfig)
+
+    const developerInfoId: number = selectDeveloperInfoQueryResult.rows[0].developerInfoId
+    const deleteDeveloperIfoQuery = `
+        DELETE FROM
+            developer_infos
+        WHERE
+            id = $1
+    `
+    const deleteDeveloperIfoQueryConfig: QueryConfig = {
+        text: deleteDeveloperIfoQuery,
+        values: [developerInfoId]
+    } 
+    
+    if(developerInfoId) {
+        await client.query(deleteDeveloperIfoQueryConfig)
+    }
+    
+    const deleteDeveloperQuery = `
+        DELETE FROM
+            developers
+        WHERE
+            id = $1
+    `
+    const deleteDeveloperQueryConfig: QueryConfig = {
+        text: deleteDeveloperQuery,
+        values: [developerId]
+    }
+    
+    await client.query(deleteDeveloperQueryConfig)
+
+    return response.status(204).send()
+}
+
 export {
     createNewDeveloper,
     createDeveloperInfo,
     listAllDevelopers,
     getSpecificDeveloper,
     updateDeveloper,
-    updateDeveloperInfo
+    updateDeveloperInfo,
+    deleteDeveloper
 }

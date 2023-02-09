@@ -9,7 +9,9 @@ CREATE TABLE developer_infos (
 CREATE TABLE developers (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(50) NOT NULL,
-	email VARCHAR(50) NOT null
+	email VARCHAR(50) NOT NULL UNIQUE,
+	"developerInfoId" INTEGER UNIQUE,
+	FOREIGN KEY ("developerInfoId") REFERENCES developer_infos("id") ON DELETE SET NULL
 );
 
 CREATE TABLE projects (
@@ -31,9 +33,3 @@ CREATE TABLE projects_technologies (
 	id SERIAL PRIMARY KEY,
 	addedIn DATE NOT NULL 
 );
-
-ALTER TABLE developers 
-ADD COLUMN "developerInfoId" INTEGER UNIQUE;
-
-ALTER TABLE developers 
-ADD FOREIGN KEY ("developerInfoId") REFERENCES developer_infos(id);

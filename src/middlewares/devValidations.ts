@@ -95,6 +95,31 @@ const checkIfDeveloperExists = async (request: Request, response: Response, next
     return next()
 }
 
+const checkIfDeveloperInfosExists = async (request: Request, response: Response, next: NextFunction) => {
+    const developerId = request.params.id
+    const checkDeveloperInfosQuery = `
+        SELECT
+            "developerInfoId"  
+        FROM 
+            developers 
+        WHERE id = $1;
+    `
+    const checkDeveloperInfosQueryConfig: QueryConfig = {
+        text: checkDeveloperInfosQuery,
+        values: [developerId]
+    }
+    const checkDeveloperInfosQueryResult = await client.query(checkDeveloperInfosQueryConfig)
+
+    if(checkDeveloperInfosQueryResult.rowCount > 0) {
+        return response.status(400).json({
+            message: "Developer infos already exists."
+        })
+    }
+
+    
+    return next()
+}
+
 const checkRequiredKeysDeveloperInfos = (request: Request, response: Response, next: NextFunction) => {
     const requestKeys = Object.keys(request.body)
     
@@ -107,6 +132,26 @@ const checkRequiredKeysDeveloperInfos = (request: Request, response: Response, n
     if(!requestKeys.includes("preferredOS")) {
         return response.status(400).json({
             message: "Missing required key: preferredOS."
+        })
+    }
+
+    return next()
+}
+
+const checkValidOS = async (request: Request, response: Response, next: NextFunction) => {
+    const requestOS = request.body.preferredOS
+    const validOSQuery = `
+        SELECT  UNNEST (enum_range(NULL::OS));
+    `
+    const validOSResult = await client.query(validOSQuery)
+    const validOS = validOSResult.rows.map(os => {
+        return os.unnest
+    })
+
+    if(!validOS.includes(requestOS)) {
+        return response.status(400).json({
+            message: "Invalid OS option.",
+            options: [ "Windows", "Linux", "MacOS" ]
         })
     }
 
@@ -174,5 +219,7 @@ export {
     removeExtraKeysDeveloperInfos,
     checkPosibleKeysUpdateDeveloper,
     removeExtraKeysDeveloperInfosUpdate,
-    checkPosibleKeysUpdateDeveloperInfo
+    checkPosibleKeysUpdateDeveloperInfo,
+    checkValidOS,
+    checkIfDeveloperInfosExists
 }

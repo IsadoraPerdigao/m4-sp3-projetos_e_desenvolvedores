@@ -184,11 +184,46 @@ const createTechnologyToProject = async (request: Request, response: Response) =
     return response.status(201).json(selectQueryResult.rows[0])
 }
 
+const deleteTechnologyFromProject = async (request: Request, response: Response) => {
+    const projectId = request.params.id
+    const techName = request.params.name
+    const findTechIdQuery = `
+        SELECT 
+            id
+        FROM
+            technologies 
+        WHERE
+            name = $1;
+    `
+    const findTechIdQueryConfig: QueryConfig = {
+        text: findTechIdQuery,
+        values: [techName.toUpperCase()]
+    }
+    const findTechIdQueryResult = await client.query(findTechIdQueryConfig)
+    const techId = findTechIdQueryResult.rows[0].id
+    
+    const deleteQuery = `
+        DELETE FROM 
+            projects_technologies  
+        WHERE 
+            "projectId" = $1 AND "technologyId" = $2;
+    `
+    const deleteQueryConfig: QueryConfig = {
+        text: deleteQuery,
+        values: [projectId, techId]
+    }
+    
+    await client.query(deleteQueryConfig)
+
+    return response.status(204).json()
+}
+
 export {
     createProject,
     listAllProjects,
     getSpecificProject,
     updateProject,
     deleteProject,
-    createTechnologyToProject
+    createTechnologyToProject,
+    deleteTechnologyFromProject
 }

@@ -76,8 +76,34 @@ const checkRequiredKeysProjects = (request: Request, response: Response, next: N
     return next()
 }
 
+const checkIfProjectExists = async (request: Request, response: Response, next: NextFunction) => {
+    const projectId = request.params.id
+    const query = `
+        SELECT 
+            *
+        FROM
+            projects
+        WHERE
+            id = $1
+    `
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [projectId]
+    }
+    const queryResult = await client.query(queryConfig)
+
+    if(queryResult.rowCount === 0) {
+        return response.status(404).json({
+            message: "Project not found."
+        })
+    }
+    
+    return next()
+}
+
 export {
     checkIfProjectDeveloperExists,
     removeExtraKeysProject,
-    checkRequiredKeysProjects
+    checkRequiredKeysProjects,
+    checkIfProjectExists
 }

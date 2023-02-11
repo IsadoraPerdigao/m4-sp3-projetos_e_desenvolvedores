@@ -91,7 +91,7 @@ const removeExtraKeysDeveloperUpdate = (request: Request, resopnse: Response, ne
 }
 
 const checkIfDeveloperExists = async (request: Request, response: Response, next: NextFunction)  => {
-    const developerId = request.params.id
+    const developerId = request.params.id ? request.params.id : request.body.developerId
     const query = `
         SELECT 
             * 

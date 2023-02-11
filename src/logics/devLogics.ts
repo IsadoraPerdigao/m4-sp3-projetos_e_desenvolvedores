@@ -97,6 +97,42 @@ const queryResult: DeveloperCompleteResult = await client.query(queryConfig)
 return response.status(200).json(queryResult.rows[0])
 }
 
+const getDeveloperProjects = async (request: Request, response: Response): Promise<Response> => {
+    const developerId = request.params.id
+    const query = `
+        SELECT 
+            p.id AS "projectId", 
+            p.name AS "projectName",
+            p.description AS "projectDescription",
+            p."estimatedTime" ,
+            p.repository ,
+            p."startDate" ,
+            p."endDate", 
+            d.id AS "developerId",
+            d."name" AS "developerName",
+            d.email,
+            d."developerInfoId",
+            t.id AS "technologyId",
+            t.name AS "technologyName"
+        FROM 
+            projects p 
+        LEFT JOIN  
+            developers d ON p."developerId" = d.id 
+        LEFT JOIN  
+            projects_technologies pt  ON  pt."projectId" = p.id 
+        LEFT JOIN 
+            technologies t ON pt."technologyId" = t.id 
+        WHERE d.id = $1;
+    `
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [developerId]
+    }
+    const queryResult = await client.query(queryConfig)
+
+    return response.status(200).json(queryResult.rows)
+}
+
 const updateDeveloper = async (request: Request, response: Response): Promise<Response> => {
     const developerId = request.params.id
     const updateData = Object.values(request.body)
@@ -216,6 +252,7 @@ export {
     createDeveloperInfo,
     listAllDevelopers,
     getSpecificDeveloper,
+    getDeveloperProjects,
     updateDeveloper,
     updateDeveloperInfo,
     deleteDeveloper

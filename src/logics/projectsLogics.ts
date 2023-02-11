@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { QueryConfig } from "pg";
 import format from "pg-format";
 import { client } from "../database";
 import { ProjectRequest, ProjectResult, ProjectTechnologiesResult } from "../interfaces/projectsInterfaces"
@@ -49,7 +50,38 @@ const listAllProjects = async (request: Request, response: Response): Promise<Re
     return response.status(200).json(queryResult.rows)
 }
 
+const getSpecificProject = async (request: Request, response: Response): Promise<Response> => {
+    const projectId = request.params.id;
+    const query = `
+        SELECT 
+            p.id AS "projectId",
+            p.name AS "projectName",
+            p.description AS "projectDescription",
+            p."estimatedTime" AS "projectEstimatedTime",
+            p.repository AS "projectRepository",
+            p."startDate" AS "projectStartDate",
+            p."endDate" AS "projectEndDate",
+            p."developerId" AS "projectDeveloperId",
+            t.id AS "technologyId",
+            t.name AS "technologyName"	
+        FROM 
+            projects p 
+        LEFT JOIN  projects_technologies pt  ON  pt."projectId" = p.id 
+        LEFT JOIN technologies t ON pt."technologyId" = t.id
+        WHERE 
+            p.id = $1;
+    `
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [projectId]
+    }
+    const queryResult: ProjectTechnologiesResult = await client.query(queryConfig)
+
+    return response.status(200).json(queryResult.rows)
+}
+
 export {
     createProject,
-    listAllProjects
+    listAllProjects,
+    getSpecificProject
 }

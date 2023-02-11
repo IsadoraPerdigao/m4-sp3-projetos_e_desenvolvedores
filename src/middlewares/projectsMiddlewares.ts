@@ -60,7 +60,14 @@ const removeExtraKeysProject = (request: Request, response: Response, next: Next
 }
 
 const checkRequiredKeysProjects = (request: Request, response: Response, next: NextFunction) => {
-    const requiredKeys = ["name", "description", "estimatedTime", "repository", "startDate", "developerId"]
+    const requiredKeys = [
+        "name",
+        "description",
+        "estimatedTime",
+        "repository",
+        "startDate",
+        "developerId"
+    ]
     const requestKeys = Object.keys(request.body)
 
     let hasRequiredKeys = true
@@ -155,11 +162,54 @@ const removeExtraKeysProjectUpdate = (request: Request, response: Response, next
     next()
 }
 
+const removeExtraKeysTechnology = (request: Request, response: Response, next: NextFunction) => {
+    request.body = {
+        name: request.body.name
+    }
+
+    return next()
+}
+
+const checkPosibleValuesTechnologies = (request: Request, response: Response, next: NextFunction) => {
+    const posibleValues = [
+        "JAVASCRIPT",
+        "PYTHON",
+        "REACT",
+        "EXPRESS.JS",
+        "HTML",
+        "CSS",
+        "DJANGO",
+        "POSTGRESQL",
+        "MONGODB"
+    ]
+    const requestValue = request.body.name
+
+    if(!posibleValues.includes(requestValue.toUpperCase())) {
+        return response.status(400).json({
+            message: "Technology not supported.",
+            options: [
+                "JavaScript",
+                "Python",
+                "React",
+                "Express.js",
+                "HTML",
+                "CSS",
+                "Django",
+                "PostgreSQL",
+                "MongoDB"
+            ]
+        })
+    }
+    return next()
+}
+
 export {
     checkIfProjectDeveloperExists,
     removeExtraKeysProject,
     checkRequiredKeysProjects,
     checkIfProjectExists,
     checkPosibleKeysUpdateProject,
-    removeExtraKeysProjectUpdate
+    removeExtraKeysProjectUpdate,
+    removeExtraKeysTechnology,
+    checkPosibleValuesTechnologies
 }

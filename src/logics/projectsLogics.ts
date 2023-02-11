@@ -123,10 +123,72 @@ const deleteProject = async (request: Request, response: Response) => {
     return response.status(204).send()
 }
 
+const createTechnologyToProject = async (request: Request, response: Response) => {
+    const projectId = request.params.id
+    const technologyName = request.body.name
+    const findTechIdQuery = `
+        SELECT 
+            id
+        FROM
+            technologies 
+        WHERE
+            name = $1;
+    `
+    const findTechIdQueryConfig: QueryConfig = {
+        text: findTechIdQuery,
+        values: [technologyName.toUpperCase()]
+    }
+    const findTechIdQueryResult = await client.query(findTechIdQueryConfig)
+    const techId = findTechIdQueryResult.rows[0].id
+
+    const currentDate = new Date()
+
+    const insertQuery = `
+        INSERT INTO 
+            projects_technologies ("addedIn", "projectId", "technologyId")
+        VALUES 
+            ($1, $2, $3)
+        RETURNING *;
+    `
+    const insertQueryConfig: QueryConfig = {
+        text: insertQuery,
+        values: [currentDate, projectId, techId]
+    }
+    
+    await client.query(insertQueryConfig)
+    
+    const selectQuery = `
+        SELECT 
+            t.id AS "technologyId",
+            t.name AS "technologyName",
+            p.id AS "projectId",
+            p.name AS "projectName",
+            p.description AS "projectDescription",
+            p."estimatedTime" AS "projectEstimatedTime",
+            p.repository AS "projectRepository",
+            p."startDate" AS "projectStartDate",
+            p."endDate" AS "projectEndDate"
+        FROM 
+            projects p 
+        LEFT JOIN  projects_technologies pt  ON  pt."projectId" = p.id 
+        LEFT JOIN technologies t ON pt."technologyId" = t.id
+        WHERE 
+            t.id = $1;
+    `
+    const selectQueryConfig: QueryConfig = {
+        text: selectQuery,
+        values: [techId]
+    }
+    const selectQueryResult = await client.query(selectQueryConfig)
+
+    return response.status(201).json(selectQueryResult.rows[0])
+}
+
 export {
     createProject,
     listAllProjects,
     getSpecificProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    createTechnologyToProject
 }

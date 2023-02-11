@@ -1,36 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { QueryConfig } from "pg";
 import { client } from "../database";
-import { DeveloperResult } from "../interfaces/devInterfaces"
 import { IProject } from "../interfaces/projectsInterfaces";
-
-const checkIfProjectDeveloperExists = async (request: Request, response: Response, next: NextFunction) => {
-    const developerId = request.body.developerId
-    const query = `
-        SELECT 
-            *
-        FROM
-            developers
-        WHERE
-            id = $1
-    `
-    const queryConfig: QueryConfig = {
-        text: query,
-        values: [developerId]
-    }
-
-    if(developerId) {
-        const queryResult: DeveloperResult = await client.query(queryConfig)
-    
-        if(queryResult.rowCount === 0) {
-            return response.status(404).json({
-                message: "Developer not found"
-            })
-        }
-    }
-    
-    return next()
-}
 
 const removeExtraKeysProject = (request: Request, response: Response, next: NextFunction) => {
     let requestBody = request.body
@@ -232,7 +203,6 @@ const checkIfTechIsInProject = async (request: Request, response: Response, next
 }
 
 export {
-    checkIfProjectDeveloperExists,
     removeExtraKeysProject,
     checkRequiredKeysProjects,
     checkIfProjectExists,

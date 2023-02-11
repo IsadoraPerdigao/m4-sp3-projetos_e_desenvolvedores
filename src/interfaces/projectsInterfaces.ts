@@ -11,10 +11,17 @@ interface IProject {
     developerId: number
 }
 
+interface IProjectTechnologies extends IProject {
+    technologyId: number
+    technologyName: string
+}
+
 type ProjectRequest = Omit<IProject, "id">
 type ProjectResult = QueryResult<IProject>
+type ProjectTechnologiesResult = QueryResult<IProjectTechnologies>
 
 export {
     ProjectRequest,
-    ProjectResult
+    ProjectResult,
+    ProjectTechnologiesResult
 }

@@ -80,8 +80,34 @@ const getSpecificProject = async (request: Request, response: Response): Promise
     return response.status(200).json(queryResult.rows)
 }
 
+const updateProject = async (request: Request, response: Response) => {
+    const projectId = request.params.id
+    const updateData = Object.values(request.body)
+    const updateKeys = Object.keys(request.body)
+
+    const query: string = format(
+        `
+        UPDATE  
+            projects
+        SET(%I) = ROW(%L)
+        WHERE id = $1
+        RETURNING *;
+    `,
+    updateKeys,
+    updateData)
+
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [projectId]
+    }
+    const queryResult : ProjectResult = await client.query(queryConfig)
+
+    return response.status(200).json(queryResult.rows[0])
+}
+
 export {
     createProject,
     listAllProjects,
-    getSpecificProject
+    getSpecificProject,
+    updateProject
 }

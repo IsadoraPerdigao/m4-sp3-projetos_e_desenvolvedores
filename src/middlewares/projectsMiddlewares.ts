@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { QueryConfig } from "pg";
 import { client } from "../database";
 import { DeveloperResult } from "../interfaces/devInterfaces"
+import { IProject } from "../interfaces/projectsInterfaces";
 
 const checkIfProjectDeveloperExists = async (request: Request, response: Response, next: NextFunction) => {
     const developerId = request.body.developerId
@@ -17,12 +18,15 @@ const checkIfProjectDeveloperExists = async (request: Request, response: Respons
         text: query,
         values: [developerId]
     }
-    const queryResult: DeveloperResult = await client.query(queryConfig)
 
-    if(queryResult.rowCount === 0) {
-        return response.status(404).json({
-            message: "Developer not found"
-        })
+    if(developerId) {
+        const queryResult: DeveloperResult = await client.query(queryConfig)
+    
+        if(queryResult.rowCount === 0) {
+            return response.status(404).json({
+                message: "Developer not found"
+            })
+        }
     }
     
     return next()
@@ -101,9 +105,61 @@ const checkIfProjectExists = async (request: Request, response: Response, next: 
     return next()
 }
 
+const checkPosibleKeysUpdateProject = (request: Request, response: Response, next: NextFunction) => {
+    const requestKeys = Object.keys(request.body)
+    const posibleKeys = [
+        "name",
+        "description",
+        "estimatedTime",
+        "repository",
+        "startDate",
+        "endDate",
+        "developerId"
+    ]
+    let hasPosibleKeys = posibleKeys.some( pK => {
+        return requestKeys.includes(pK)
+    })
+    
+    if(!hasPosibleKeys) {
+        return response.status(400).json({
+            message: "At least one of those keys must be send.",
+            keys: `${posibleKeys}`
+        })
+    }
+
+    return next()
+}
+
+const removeExtraKeysProjectUpdate = (request: Request, response: Response, next: NextFunction) => {
+
+    const posibleKeys = [
+        "name",
+        "description",
+        "estimatedTime",
+        "repository",
+        "startDate",
+        "endDate",
+        "developerId"
+    ]
+
+    let newBody : IProject = {}
+    
+    Object.keys(request.body).forEach(key => {
+        if (posibleKeys.includes(key as string)) {
+            newBody[key as keyof IProject] = request.body[key];
+        }
+    })
+
+    request.body = newBody
+
+    next()
+}
+
 export {
     checkIfProjectDeveloperExists,
     removeExtraKeysProject,
     checkRequiredKeysProjects,
-    checkIfProjectExists
+    checkIfProjectExists,
+    checkPosibleKeysUpdateProject,
+    removeExtraKeysProjectUpdate
 }

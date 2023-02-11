@@ -1,14 +1,14 @@
 import { QueryResult } from "pg"
 
 interface IProject {
-    id: number
-    name: string
-    description: string
-    estimatedTime: string
-    repository: string
-    startDate: Date
+    id?: number
+    name?: string
+    description?: string
+    estimatedTime?: string
+    repository?: string
+    startDate?: Date
     endDate?: Date
-    developerId: number
+    developerId?: number
 }
 
 interface IProjectTechnologies extends IProject {
@@ -23,5 +23,6 @@ type ProjectTechnologiesResult = QueryResult<IProjectTechnologies>
 export {
     ProjectRequest,
     ProjectResult,
-    ProjectTechnologiesResult
+    ProjectTechnologiesResult,
+    IProject
 }

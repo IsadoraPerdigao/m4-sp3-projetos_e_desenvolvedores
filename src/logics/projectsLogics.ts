@@ -105,9 +105,28 @@ const updateProject = async (request: Request, response: Response) => {
     return response.status(200).json(queryResult.rows[0])
 }
 
+const deleteProject = async (request: Request, response: Response) => {
+    const projectId = request.params.id
+    const query = `
+        DELETE FROM 
+            projects  
+        WHERE 
+            id = $1;
+    `
+    const queryConfig: QueryConfig = {
+        text: query,
+        values: [projectId]
+    }
+    
+    await client.query(queryConfig)
+
+    return response.status(204).send()
+}
+
 export {
     createProject,
     listAllProjects,
     getSpecificProject,
-    updateProject
+    updateProject,
+    deleteProject
 }

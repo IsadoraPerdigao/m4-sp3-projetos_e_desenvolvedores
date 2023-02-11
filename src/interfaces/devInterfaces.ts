@@ -1,10 +1,10 @@
 import { QueryResult } from "pg"
 
 interface IDeveloper {
-    id: number
-    name: string
-    email: string
-    developerInfoId: number | null
+    id?: number
+    name?: string
+    email?: string
+    developerInfoId?: number | null
 }
 
 interface IDeveloperInfos {

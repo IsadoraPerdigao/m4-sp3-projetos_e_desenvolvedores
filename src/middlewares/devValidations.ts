@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express"
 import { QueryConfig } from "pg"
-import { string } from "pg-format"
 import { client } from "../database"
-import { DeveloperInfoPatchBody, DeveloperResult } from "../interfaces/devInterfaces"
+import { DeveloperInfoPatchBody, DeveloperResult, IDeveloper } from "../interfaces/devInterfaces"
 
 const checkIfEmailExists = async (request: Request, response: Response, next: NextFunction) => {
     const requestEmail = request.body.email
@@ -69,6 +68,26 @@ const removeExtraKeysDeveloper = async (request: Request, response: Response, ne
     }
 
     return next()
+}
+
+const removeExtraKeysDeveloperUpdate = (request: Request, resopnse: Response, next: NextFunction) => {
+    const posibleKeys = [
+        "name",
+        "email",
+        "developerInfoId"
+    ]
+
+    let newBody : IDeveloper = {}
+    
+    Object.keys(request.body).forEach(key => {
+        if (posibleKeys.includes(key as string)) {
+            newBody[key as keyof IDeveloper] = request.body[key];
+        }
+    })
+
+    request.body = newBody
+
+    next()
 }
 
 const checkIfDeveloperExists = async (request: Request, response: Response, next: NextFunction)  => {
@@ -221,5 +240,6 @@ export {
     removeExtraKeysDeveloperInfosUpdate,
     checkPosibleKeysUpdateDeveloperInfo,
     checkValidOS,
-    checkIfDeveloperInfosExists
+    checkIfDeveloperInfosExists,
+    removeExtraKeysDeveloperUpdate
 }

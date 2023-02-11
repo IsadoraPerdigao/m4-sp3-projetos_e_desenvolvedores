@@ -182,7 +182,7 @@ const checkPosibleValuesTechnologies = (request: Request, response: Response, ne
         "POSTGRESQL",
         "MONGODB"
     ]
-    const requestValue = request.body.name
+    const requestValue = request.method === "POST" ? request.body.name : request.params.name
 
     if(!posibleValues.includes(requestValue.toUpperCase())) {
         return response.status(400).json({
@@ -203,6 +203,34 @@ const checkPosibleValuesTechnologies = (request: Request, response: Response, ne
     return next()
 }
 
+const checkIfTechIsInProject = async (request: Request, response: Response, next: NextFunction) => {
+    const projectId = request.params.id
+    const techName = request.params.name
+    const query = `
+        SELECT 
+            t.id AS "technologyId"	
+        FROM 
+            projects p 
+        LEFT JOIN  projects_technologies pt  ON  pt."projectId" = p.id 
+        LEFT JOIN technologies t ON pt."technologyId" = t.id
+        WHERE 
+            t.name = $1 AND p.id = $2;
+    `
+    const queryConfig: QueryConfig = {
+        text: query, 
+        values: [techName.toUpperCase(), projectId]
+    }
+    const queryResult = await client.query(queryConfig)
+    
+    if(queryResult.rowCount === 0) {
+        return response.status(404).json({
+            message: `Technology ${techName} not found on thin Project.`
+        })
+    }
+
+    return next()
+}
+
 export {
     checkIfProjectDeveloperExists,
     removeExtraKeysProject,
@@ -211,5 +239,6 @@ export {
     checkPosibleKeysUpdateProject,
     removeExtraKeysProjectUpdate,
     removeExtraKeysTechnology,
-    checkPosibleValuesTechnologies
+    checkPosibleValuesTechnologies,
+    checkIfTechIsInProject
 }

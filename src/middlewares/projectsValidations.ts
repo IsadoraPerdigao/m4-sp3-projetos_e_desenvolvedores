@@ -59,7 +59,14 @@ const checkRequiredKeysProjects = (request: Request, response: Response, next: N
 }
 
 const checkIfProjectExists = async (request: Request, response: Response, next: NextFunction) => {
-    const projectId = request.params.id
+    const projectId: any = request.params.id
+    
+    if(parseInt(projectId) != projectId) {
+        return response.status(404).json({
+            message: "Invalid project id"
+        })
+    }
+
     const query = `
         SELECT 
             *

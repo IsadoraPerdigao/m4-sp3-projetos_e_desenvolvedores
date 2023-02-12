@@ -91,8 +91,8 @@ const removeExtraKeysDeveloperUpdate = (request: Request, resopnse: Response, ne
 }
 
 const checkIfDeveloperExists = async (request: Request, response: Response, next: NextFunction)  => {
-    const developerId = request.params.id ? request.params.id : request.body.developerId
-    
+    const developerId = request.url.includes("developers") ? request.params.id : request.body.developerId
+
     if(parseInt(developerId) != developerId) {
         return response.status(404).json({
             message: "Invalid developer id"

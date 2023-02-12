@@ -161,6 +161,12 @@ const checkPosibleValuesTechnologies = (request: Request, response: Response, ne
         "MONGODB"
     ]
     const requestValue = request.method === "POST" ? request.body.name : request.params.name
+    
+    if(typeof requestValue !== "string") {
+        return response.status(400).json({
+            message: "Invalid technology name"
+        })
+    }
 
     if(!posibleValues.includes(requestValue.toUpperCase())) {
         return response.status(400).json({
